@@ -51,10 +51,18 @@ TUNING_CONFIGS = {
 # Car-specific configs
 CAR_SPECIFIC_CONFIGS = {
   CAR.KIA_NIRO_EV: CarTuningConfig(
-    stopping_decel_rate=0.3,
-    lookahead_jerk_upper_v=[0.3, 1.0],
-    lookahead_jerk_lower_v=[0.2, 0.4],
-    jerk_limits=2.5,
+    # Stop-and-go improvements - start moving ASAP when lead moves
+    v_ego_starting=0.05,             # Was 0.10 (default) - now 50% lower for better "stickiness"
+    v_ego_stopping=0.25,             # Keep default
+    stopping_decel_rate=0.3,         # Keep existing gentle stop
+
+    # Progressive braking at mid-speeds (30-50 kmh ≈ 8-14 m/s)
+    lookahead_jerk_bp=[5., 12., 20.],            # NEW: Added 12 m/s breakpoint for 30-50 kmh range
+    lookahead_jerk_upper_v=[0.3, 0.5, 1.0],      # Smooth progression across speed ranges
+    lookahead_jerk_lower_v=[0.25, 0.50, 0.55],   # LONGER lookahead at mid-speeds = earlier, progressive braking
+
+    # Allow MUCH harder emergency braking - this was the main limiter!
+    jerk_limits=4.0,                 # Was 2.5 - now DOUBLED to allow proper emergency braking
   ),
   CAR.KIA_NIRO_PHEV_2022: CarTuningConfig(
     stopping_decel_rate=0.3,
